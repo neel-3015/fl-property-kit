@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FL Property Analyzer — Orlando vs Brevard (2026)</title>
+<style>
+  :root{--ink:#152238;--mut:#5b6b84;--line:#d7dfeb;--bg:#f4f7fb;--card:#fff;--good:#0b7a3e;--bad:#b3261e;--accent:#1c56c9;}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink);font-size:14px}
+  header{background:var(--ink);color:#fff;padding:14px 20px}
+  header h1{margin:0;font-size:18px}
+  header p{margin:4px 0 0;color:#aebbd4;font-size:12px}
+  main{max-width:1250px;margin:0 auto;padding:16px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:980px){.cols{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+  .card h2{margin:0 0 10px;font-size:15px}
+  fieldset{border:1px solid var(--line);border-radius:8px;margin:0 0 10px;padding:8px 10px}
+  legend{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;padding:0 4px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+  label{display:block;font-size:11px;color:var(--mut)}
+  input,select{width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff}
+  input[type=checkbox]{width:auto}
+  .row{display:flex;gap:8px;align-items:center}
+  .toggle{display:flex;gap:10px;margin:6px 0;flex-wrap:wrap}
+  .toggle label{font-size:12px;color:var(--ink);display:flex;gap:4px;align-items:center}
+  .presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:7px 10px;font-size:12px;cursor:pointer}
+  button.sec{background:#64748b}
+  button:hover{filter:brightness(1.1)}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0}
+  .m{border:1px solid var(--line);border-radius:8px;padding:8px}
+  .m .k{font-size:10px;color:var(--mut);text-transform:uppercase}
+  .m .v{font-size:16px;font-weight:700;margin-top:2px}
+  table{border-collapse:collapse;width:100%;font-size:12px;margin:8px 0}
+  th,td{border:1px solid var(--line);padding:5px 7px;text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  th{background:#eef3fa}
+  .neg{color:var(--bad)} .pos{color:var(--good)}
+  .warn{background:#fdecea;border:1px solid #f5c6c0;color:#8a1f18;border-radius:8px;padding:8px 10px;font-size:12px;margin:8px 0}
+  .note{color:var(--mut);font-size:11px}
+  .pill{display:inline-block;background:#e6edf9;color:var(--accent);border-radius:20px;padding:2px 8px;font-size:11px;margin-left:6px}
+  #cmpTable td:first-child{font-weight:600}
+  .small{font-size:11px}
+  @media print{body{background:#fff}main{max-width:none;padding:0}.presets,button{display:none}.cols{grid-template-columns:1fr}.card{border:0;padding:0}.warn{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Florida Property Analyzer — Orlando MSA vs Brevard (Viera / Melbourne / Palm Bay / Titusville)</h1>
+  <p>Data baseline: Florida Realtors MSA report released 2026-09-16 · realtor.com Aug-2026 rental report · FRED 30-yr fixed 6.95% (wk 2026-09-17) · Estimates only — get an insurance quote and city zoning check BEFORE any offer.</p>
+</header>
+<main>
+
+<div class="presets" id="presetBar">
+  <b class="small">Load preset into Scenario A:</b>
+  <button onclick="loadPreset('wpb')">West Palm Bay (investment)</button>
+  <button onclick="loadPreset('smel')">South Melbourne (investment)</button>
+  <button onclick="loadPreset('titus')">Titusville (investment)</button>
+  <button onclick="loadPreset('viera')">Viera (primary residence)</button>
+  <button onclick="loadPreset('kiss')">Kissimmee STR (vacation rental)</button>
+</div>
+
+<div class="cols">
+  <div class="card" id="cardA"></div>
+  <div class="card" id="cardB"></div>
+</div>
+
+<div class="card">
+  <h2>Scenario A vs Scenario B — side-by-side</h2>
+  <table id="cmpTable"></table>
+  <p class="note">Comparison uses the shared inputs of each scenario (price, down payment, rate, horizon, costs). Primary-residence rows show housing cost &amp; equity instead of yields — a home you live in is not a cash-flow asset.</p>
+</div>
+
+<div class="card">
+  <h2>How the model works (and what it does NOT do)</h2>
+  <ul class="note small" style="line-height:1.5">
+    <li><b>Property tax (investment):</b> non-homestead, no Save-Our-Homes cap — assessed value rises with the market. Optional 15% assessed-value deduction toggle reflects the 2026-era non-homestead reduction that can apply in some circumstances — verify applicability with the county property appraiser.</li>
+    <li><b>Property tax (primary residence):</b> homestead exemption applied ($50K under current law; Amendment 3 on the Nov 2026 ballot would raise it to $150K in 2027 and $250K in 2028 if approved by 60% of voters) + Assessment Limitation ("Save Our Homes"): assessed value growth capped at min(3%, market growth). Selling decaptures the benefit — the capped assessed value resets toward market for the next buyer, and you lose the cap when you move.</li>
+    <li><b>Not modeled:</b> income taxes / depreciation (real but outside this model), mortgage-rate changes on fixed loans, flood insurance zone specifics, condo milestone/SIRS special assessments (can add $10K–$100K+ one-time), HOA assessment spikes, hurricane deductible timing, vacancy at turnover between tenants beyond the 5% factor.</li>
+    <li><b>Effective millage defaults</b> (all-in ≈ 1.85% Brevard / 1.90% Orange) are approximations for non-homestead property. Confirm exact millage on the parcel at <a href="https://www.pabrevard.org" target="_blank">pabrevard.org</a> / <a href="https://www.ocpafl.org" target="_blank">ocpafl.org</a>.</li>
+  </ul>
+</div>
+</main>
+
+<script>
+"use strict";
+/* ============ shared, deterministic model — mirrored in validate.py ============ */
+function pmt(annualRate, nMonths, pv){
+  var r = annualRate/100/12;
+  if(!(r>0)) return pv/nMonths;
+  return pv*r/(1-Math.pow(1+r,-nMonths));
+}
+function loanBalance(pv, annualRate, paidMonths){
+  var r=annualRate/100/12, p=pmt(annualRate,360,pv);
+  if(!(r>0)) return pv*(1-paidMonths/360);
+  return pv*Math.pow(1+r,paidMonths)-p*((Math.pow(1+r,paidMonths)-1)/r);
+}
+/* mode: 'inv' | 'str' | 'primary' */
+function model(s, years){
+  var price=s.price, cash=price*s.down/100, close=price*s.closePct/100;
+  var rate=s.rate, L=price-cash;
+  var M=pmt(rate,360,L);
+  var out={errs:[]};
+  out.monthlyPAndI=M; out.cashAtClose=cash+close;
+  var gross0, vac=s.vac/100, mgmtPct=(s.mgmt? s.mgmtPct/100 : 0);
+  if(s.mode==='str'){ gross0 = s.adr*365*(s.occ/100); }
+  else { gross0 = s.rent*12; }
+  var eg = Math.pow(1+s.expGrowth/100,0); // base year factor=1
+  var cum=0, rows=[];
+  for(var t=1;t<=years;t++){
+    var f=Math.pow(1+s.expGrowth/100,t-1);
+    var grossT = gross0*Math.pow(1+s.rentGrowth/100,t-1);
+    var vacAmt = grossT*vac;
+    var collected = grossT-vacAmt;
+    var hoa=s.hoa*12*f, ins=s.ins*f;
+    var tax, assessed;
+    if(s.mode==='primary'){
+      var g=Math.min(3,s.appGrowth)/100; // Save Our Homes cap
+      assessed = price*Math.pow(1+g,t-1);
+      var ex = homesteadExemption(s, t);
+      tax = Math.max(0, assessed-ex)*s.mills/100;
+    } else {
+      assessed = price*Math.pow(1+s.appGrowth/100,t-1);
+      if(s.ded15) assessed*=0.85;
+      tax = assessed*s.mills/100;
+    }
+    var repairs=price*0.01*f, capex=price*0.01*f;
+    var mg=collected*mgmtPct;
+    var strFee=0,tdt=0,permit=0;
+    if(s.mode==='str'){ strFee=collected*(s.strPct/100); tdt=grossT*(s.tdt/100); permit=s.permit; }
+    var op = hoa+ins+tax+repairs+mg+strFee+tdt+permit;   // operating (capex excluded)
+    var noi = collected-op;
+    var debt = (t<=360)? 12*M : (t===361? loanBalance(L,rate,360)*0 : 0); // 30-yr loan; assume payoff ref/sale before yr30
+    var cf = noi-capex-debt;
+    cum+=cf;
+    var bal = loanBalance(L,rate,Math.min(t*12,360));
+    var val = price*Math.pow(1+s.appGrowth/100,t);
+    rows.push({year:t, noi:noi, cf:cf, cum:cum, bal:bal, val:val, tax:tax, collected:collected, op:op});
+  }
+  out.rows=rows;
+  var r1=rows[0];
+  out.y1={noi:r1.noi, cf:r1.cf, noiMonthly:r1.noi/12, cfMonthly:r1.cf/12,
+          tax:r1.tax!==undefined?r1.tax:undefined};
+  // recompute year-1 components for display
+  (function(){
+    var grossT=gross0, vacAmt=grossT*vac, collected=grossT-vacAmt;
+    var hoa=s.hoa*12, ins=s.ins, tax, assessed;
+    if(s.mode==='primary'){ var g=Math.min(3,s.appGrowth)/100; assessed=price*(1+g)**0; var ex=homesteadExemption(s,1); tax=Math.max(0,assessed-ex)*s.mills/100; }
+    else { assessed=price*(s.ded15?0.85:1); tax=assessed*s.mills/100; }
+    var repairs=price*0.01, mg=collected*mgmtPct, strFee=0,tdt=0,permit=0;
+    if(s.mode==='str'){ strFee=collected*s.strPct/100; tdt=grossT*s.tdt/100; permit=s.permit; }
+    out.y1Comps={gross:grossT,vac:vacAmt,collected:collected,hoa:hoa,ins:ins,tax:tax,repairs:repairs,capex:price*0.01,mg:mg,strFee:strFee,tdt:tdt,permit:permit};
+  })();
+  out.cap = r1.noi/price*100;
+  out.coc = out.y1.cf/out.cashAtClose*100;
+  // breakeven rent (yr-1): solve cf=0 linear in gross
+  var F = s.hoa*12 + s.ins + out.y1Comps.tax + price*0.01 + price*0.01 + 12*M + (s.mode==='str'? s.permit:0);
+  var denom1 = (1-vac)*(1-(s.mode==='str'? s.strPct/100 : mgmtPct)) - (s.mode==='str'? s.tdt/100 : 0);
+  out.breakeven = denom1>0 ? F/(12*denom1) : NaN; // $/mo, or ADR if str... convert below
+  if(s.mode==='str'){ out.breakevenADR = denom1>0? F/(365*(s.occ/100)*denom1) : NaN; }
+  out.loan=L;
+  return out;
+}
+function homesteadExemption(s, year){
+  // Current law: $50K homestead exemption. Amendment 3 (Nov 2026 ballot):
+  // $150K from 2027, $250K from 2028 if approved (reported 2026). Year 1 = 2026.
+  if(!s.amendment3) return 50000;
+  if(year>=3) return 250000; // 2028+
+  if(year>=2) return 150000; // 2027
+  return 50000;
+}
+/* ================= presets (2026-verified where possible) ================= */
+var PRESETS={
+  wpb:{name:"West Palm Bay — new SFR, investment", s:{mode:'inv',price:340000,down:20,closePct:3,rate:6.95,hoa:100,ins:4280,mills:1.85,rent:1750,rentGrowth:2,appGrowth:3,expGrowth:3,vac:5,mgmt:true,mgmtPct:10,ded15:false,amendment3:false},years:10,insKey:'brevInland'},
+  smel:{name:"South Melbourne — investment", s:{mode:'inv',price:410000,down:20,closePct:3,rate:6.95,hoa:60,ins:4280,mills:1.85,rent:2000,rentGrowth:2,appGrowth:3,expGrowth:3,vac:5,mgmt:true,mgmtPct:8,ded15:false,amendment3:false},years:10,insKey:'brevInland'},
+  titus:{name:"Titusville — investment", s:{mode:'inv',price:320000,down:20,closePct:3,rate:6.95,hoa:40,ins:4280,mills:1.85,rent:1600,rentGrowth:2,appGrowth:2.5,expGrowth:3,vac:5,mgmt:true,mgmtPct:10,ded15:false,amendment3:false},years:10,insKey:'brevInland'},
+  viera:{name:"Viera — primary residence", s:{mode:'primary',price:450000,down:25,closePct:3,rate:6.95,hoa:130,ins:3000,mills:1.85,rent:0,rentGrowth:0,appGrowth:3,expGrowth:3,vac:0,mgmt:false,mgmtPct:0,ded15:false,amendment3:false},years:10,insKey:'custom'},
+  kiss:{name:"Kissimmee — STR vacation rental", s:{mode:'str',price:475000,down:20,closePct:3,rate:6.95,hoa:110,ins:2400,mills:1.9,rent:0,rentGrowth:2,appGrowth:3,expGrowth:3,vac:0,mgmt:false,mgmtPct:0,ded15:false,amendment3:false,adr:215,occ:62,strPct:25,tdt:6,permit:1500},years:10,insKey:'orlInland'}
+};
+var INS_PRESETS={orlInland:["Orlando / Orange — inland (est. 2026)",2400],
+                 brevInland:["Brevard — inland (est. 2026)",4280],
+                 brevCoastal:["Brevard — coastal/ICW (est. 2026)",6800],
+                 condo:["Condo (interior ext. master policy era)",3600],
+                 custom:["Custom…",null]};
+
+/* ================= UI ================= */
+function S(id){return document.getElementById(id);}
+function fmt(n,d){ if(!isFinite(n)) return "—"; d=d||0;
+  return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function usd(n,d){ if(!isFinite(n)) return "—"; return (n<0?"-$":"$")+fmt(Math.abs(n),d||0); }
+function num(id,def){ var v=parseFloat(S(id).value); return isFinite(v)?v:def; }
+
+function scenarioPane(sc, label){
+  var p=PRESETS, i, btns="";
+  for(i in p){ btns+='<button onclick="loadPreset(\''+i+'\','+sc+')">'+p[i].name+'</button> '; }
+  return '<h2>Scenario '+label+'</h2><div class="presets">'+btns+'</div>'+
+  '<fieldset><legend>Deal</legend><div class="grid">'+
+    fld(sc,'price','Purchase price $',null)+
+    fld(sc,'down','Down %',null)+
+    fld(sc,'closePct','Closing costs %',null)+
+    fld(sc,'rate','Mortgage rate %',null)+
+    fld(sc,'years','Hold years',null)+
+  '</div></fieldset>'+
+  '<fieldset><legend>Use & taxes</legend>'+
+    '<div class="toggle">'+
+    radio(sc,'mode','inv','Investment')+radio(sc,'mode','str','STR / vacation')+radio(sc,'mode','primary','Primary residence')+
+    '<label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="sc'+sc+'_amendment3"> Amendment-3 scenario (+A3 passes: $150K homestead 2027, $250K 2028 — primary only)</label>'+
+    '<label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="sc'+sc+'_ded15"> Apply 15% assessed-value deduction (investment/2nd home, if eligible)</label>'+
+    '</div><div class="grid">'+
+    selIns(sc)+
+    fld(sc,'mills','Effective millage %',null)+
+    fld(sc,'hoa','HOA $/mo',null)+
+  '</div></fieldset>'+
+  '<fieldset><legend>Income (investment / STR)</legend><div class="grid" id="sc'+sc+'_incGrid"></div>'+
+    '<div class="toggle"><label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="sc'+sc+'_mgmt"> Property management</label>'+
+    '<input id="sc'+sc+'_mgmtPct" data-k="mgmtPct" style="width:70px" inputmode="decimal"><span class="small">% of collected rent (typ. 8–10; STR 20–30)</span></div>'+
+  '</fieldset>'+
+  '<fieldset><legend>Growth & risk</legend><div class="grid">'+
+    fld(sc,'rentGrowth','Rent growth %/yr',null)+
+    fld(sc,'appGrowth','Appreciation %/yr',null)+
+    fld(sc,'expGrowth','Expense growth %/yr',null)+
+    fld(sc,'vac','Vacancy %',null)+
+  '</div></fieldset>';
+}
+function fld(sc,id,label){ return '<div><label>'+label+'</label><input id="sc'+sc+'_'+id+'" data-k="'+id+'" inputmode="decimal"></div>'; }
+function radio(sc,name,val,lab){ return '<label><input type="radio" name="sc'+sc+'_mode" value="'+val+'"> '+lab+'</label>'; }
+function selIns(sc){
+  var o="",k;
+  for(k in INS_PRESETS){ o+='<option value="'+k+'">'+INS_PRESETS[k][0]+'</option>'; }
+  return '<div><label>Insurance $/yr (preset)</label><select id="sc'+sc+'_insKey" onchange="insPreset('+sc+')">'+o+'</select></div>'+
+         '<div><label>Insurance $/yr (override)</label><input id="sc'+sc+'_ins" data-k="ins" inputmode="decimal"></div>';
+}
+function insPreset(sc){
+  var k=S('sc'+sc+'_insKey').value;
+  if(k!=='custom' && INS_PRESETS[k][1]!=null){ S('sc'+sc+'_ins').value=INS_PRESETS[k][1]; recalc(); }
+}
+function incFields(sc){
+  var m=modeOf(sc);
+  if(m==='str'){
+    return fld(sc,'adr','ADR $/night',null)+fld(sc,'occ','Occupancy %',null)+fld(sc,'strPct','STR mgmt fee %',null)+fld(sc,'tdt','TDT on stays % (Osceola 6; Brevard differs — verify)',null)+fld(sc,'permit','Permit/reg $/yr',null);
+  } else if(m==='primary'){
+    return '<div class="small note" style="grid-column:1/-1">Primary residence — no rent modeled. Compare cost-to-own & equity, or switch to Investment.</div>';
+  }
+  return fld(sc,'rent','Monthly rent $',null);
+}
+function modeOf(sc){
+  var r=document.querySelector('input[name="sc'+sc+'_mode"]:checked');
+  return r? r.value : 'inv';
+}
+function readSc(sc){
+  function g(id,def){ var el=S('sc'+sc+'_'+id); if(!el) return def; var v=parseFloat(el.value);
+    if(!isFinite(v)){ el.classList.add('neg'); return def; } el.classList.remove('neg'); return v; }
+  var s={
+    mode:modeOf(sc),
+    price:g('price',340000), down:Math.min(Math.max(g('down',20),0),100),
+    closePct:g('closePct',3), rate:g('rate',6.95), years:Math.round(g('years',10)),
+    hoa:g('hoa',0), ins:g('ins',2400), mills:g('mills',1.9),
+    rent:g('rent',0), adr:g('adr',0), occ:g('occ',0), strPct:g('strPct',0), tdt:g('tdt',0), permit:g('permit',0),
+    rentGrowth:g('rentGrowth',0), appGrowth:g('appGrowth',3), expGrowth:g('expGrowth',3),
+    vac:Math.min(Math.max(g('vac',5),0),50),
+    mgmt: S('sc'+sc+'_mgmt').checked, mgmtPct:g('mgmtPct',10),
+    ded15: S('sc'+sc+'_ded15').checked, amendment3: S('sc'+sc+'_amendment3').checked
+  };
+  return s;
+}
+function applySc(sc,st){
+  document.querySelectorAll('input[name="sc'+sc+'_mode"]').forEach(function(r){ r.checked=(r.value===st.s.mode); });
+  S('sc'+sc+'_incGrid').innerHTML=incFields(sc);
+  ['price','down','closePct','rate','hoa','ins','mills','rent','rentGrowth','appGrowth','expGrowth','vac','mgmtPct','adr','occ','strPct','tdt','permit'].forEach(function(k){
+    var el=S('sc'+sc+'_'+k); if(el && st.s[k]!==undefined) el.value=st.s[k];
+  });
+  S('sc'+sc+'_years').value=st.years;
+  S('sc'+sc+'_insKey').value=st.insKey||'custom';
+  S('sc'+sc+'_mgmt').checked=!!st.s.mgmt;
+  S('sc'+sc+'_ded15').checked=!!st.s.ded15;
+  S('sc'+sc+'_amendment3').checked=!!st.s.amendment3;
+  renderSc(sc);
+}
+function loadPreset(key,sc){ sc=sc||1; applySc(sc, PRESETS[key]); }
+function copyAB(){ applySc(2, collect(1)); }
+
+function metricCard(k,v,cls){ return '<div class="m"><div class="k">'+k+'</div><div class="v '+(cls||'')+'">'+v+'</div></div>'; }
+
+function renderSc(sc){
+  var s=readSc(sc);
+  var years=Math.max(1,Math.min(40,s.years||10));
+  var out=model(s,years);
+  var c=out.y1Comps, el=S('sc'+sc+'_out');
+  var html="";
+  // validation warnings
+  var warns="";
+  if(s.price<=0) warns+='<div class="warn">Enter a purchase price.</div>';
+  if(s.down<0 || s.down>100) warns+='<div class="warn">Down payment must be 0–100%.</div>';
+  if(s.mode==='inv' && s.rent<=0) warns+='<div class="warn">Investment mode needs a monthly rent.</div>';
+  if(s.mode==='str' && (s.adr<=0||s.occ<=0)) warns+='<div class="warn">STR mode needs ADR and occupancy.</div>';
+  if(s.mode!=='primary' && out.y1.cf<0) warns+='<div class="warn"><b>Negative cash flow</b> '+usd(out.y1.cfMonthly)+'/mo at these inputs. Rent must cover PITIA + opex before appreciation makes the deal work — do not count on appreciation to bail out a money-pit.</div>';
+  html+=warns;
+  var m='<div class="metrics">';
+  if(s.mode==='primary'){
+    var monthlyCost = out.monthlyPAndI + c.tax/12 + s.ins/12 + s.hoa;
+    m+=metricCard("Monthly cost (P&I+tax+ins+HOA)",usd(monthlyCost,0));
+    m+=metricCard("Est. property tax/yr (yr 1)",usd(c.tax));
+    m+=metricCard("Homestead exemption", s.amendment3?"$50K→$150K→$250K":"$50K");
+    m+=metricCard("Cash at close",usd(out.cashAtClose));
+  } else {
+    m+=metricCard("Cash flow/mo (yr 1)",usd(out.y1.cfMonthly,0), out.y1.cf<0?'neg':'pos');
+    m+=metricCard("Cash-on-cash (yr 1)",fmt(isFinite(out.coc)?out.coc:NaN,1)+"%", out.coc<0?'neg':'pos');
+    m+=metricCard("Cap rate (yr 1)",fmt(isFinite(out.cap)?out.cap:NaN,1)+"%");
+    m+=metricCard("NOI/yr (yr 1)",usd(out.y1.noi));
+    m+=metricCard("NOI/mo (yr 1)",usd(out.y1.noiMonthly));
+    m+=metricCard("Breakeven "+(s.mode==='str'?"ADR $/night":"rent $/mo"), s.mode==='str'?usd(out.breakevenADR,0):usd(out.breakeven,0));
+    m+=metricCard("P&I /mo",usd(out.monthlyPAndI,0));
+    m+=metricCard("Cash at close",usd(out.cashAtClose));
+  }
+  m+='</div>';
+  html+=m;
+  // year-1 components table
+  html+='<table><tr><th>Year 1 line item</th><th>Annual</th></tr>'+
+    row2("Gross scheduled income",c.gross)+
+    (s.mode==='primary'?'':row2("Vacancy ("+s.vac+"%)",-c.vac)+row2("Collected rent",c.collected))+
+    (s.mode==='str'?row2("STR mgmt fee ("+s.strPct+"%)",-c.strFee)+row2("TDT/sales tax on stays ("+s.tdt+"%)",-c.tdt)+row2("Permits/reg",-c.permit):'')+
+    row2("Property tax (yr 1)",-c.tax)+
+    row2("Insurance",-c.ins)+
+    row2("HOA",-c.hoa)+
+    (s.mode==='primary'?'':row2("Repairs (1%)",-c.repairs)+row2("Maintenance/mgmt fee",-c.mg)+row2("CapEx reserve (1%)",-c.capex))+
+    (s.mode==='primary'?'':row2("Debt service (P&I)",-12*out.monthlyPAndI))+
+    '</table>';
+  // projections
+  var showY=[5,10,years].filter(function(v,i,a){return v<=years && a.indexOf(v)===i;});
+  html+='<table><tr><th>Year</th><th>Cash flow</th><th>Cumulative CF</th><th>Loan balance</th><th>Value</th><th>Net proceeds if sold (after 6%)</th></tr>';
+  showY.forEach(function(t){
+    var r=out.rows[t-1];
+    var np=r.val*0.94-r.bal;
+    html+='<tr><td>'+t+'</td><td class="'+(r.cf<0?'neg':'pos')+'">'+usd(r.cf)+'</td><td>'+usd(r.cum)+'</td><td>'+usd(r.bal)+'</td><td>'+usd(r.val)+'</td><td>'+usd(np)+'</td></tr>';
+  });
+  html+='</table>';
+  // sensitivity (investment only)
+  if(s.mode!=='primary'){
+    html+='<table><tr><th>Rate \\ Rent</th>';
+    var rentM=[0.95,1.0,1.05];
+    rentM.forEach(function(rm){ html+='<th>Rent ×'+rm+'</th>'; });
+    html+='</tr>';
+    [-0.75,0,0.75].forEach(function(dr){
+      html+='<tr><td>'+(s.rate+dr).toFixed(2)+'%</td>';
+      rentM.forEach(function(rm){
+        var s2=JSON.parse(JSON.stringify(s)); s2.rate=s.rate+dr;
+        if(s2.mode==='str'){ s2.adr=s.adr*rm; } else { s2.rent=s.rent*rm; }
+        var o2=model(s2,1);
+        html+='<td class="'+(o2.y1.cf<0?'neg':'pos')+'">'+usd(o2.y1.cfMonthly,0)+'/mo</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</table><p class="small note">Sensitivity: monthly cash flow, year 1. Rates ±0.75% (FRED 30-yr fixed was 6.95% wk 2026-09-17 and rising through 2026).</p>';
+  }
+  el.innerHTML=html;
+  return out;
+}
+function row2(k,v){ return '<tr><td>'+k+'</td><td>'+usd(v,0)+'</td></tr>'; }
+
+function collect(sc){
+  var s=readSc(sc);
+  return {s:s, years:s.years};
+}
+function renderCompare(){
+  var A=collect(1),B=collect(2);
+  var ya=model(A.s,Math.min(10,Math.max(1,A.s.years))), yb=model(B.s,Math.min(10,Math.max(1,B.s.years)));
+  function np(o){ var r=o.rows[o.rows.length-1]; return r.val*0.94-r.bal; }
+  function rowsX(n){return n.rows[n.rows.length-1];}
+  var t=[
+    ["Setup",(A.s.mode==='str'?'Investment STR':(A.s.mode==='inv'?'Investment LTR':'Primary residence')),(B.s.mode==='str'?'Investment STR':(B.s.mode==='inv'?'Investment LTR':'Primary residence'))],
+    ["Purchase price",usd(A.s.price),usd(B.s.price)],
+    ["Cash at close",usd(ya.cashAtClose),usd(yb.cashAtClose)],
+    ["Monthly P&I",usd(ya.monthlyPAndI,0),usd(yb.monthlyPAndI,0)],
+    ["Yr-1 property tax",usd(ya.y1Comps.tax),usd(yb.y1Comps.tax)],
+    ["Yr-1 cash flow /mo",(A.s.mode==='primary'?'n/a — live-in':usd(ya.y1.cfMonthly,0)),(B.s.mode==='primary'?'n/a — live-in':usd(yb.y1.cfMonthly,0))],
+    ["Cash-on-cash yr1",(A.s.mode==='primary'?'—':fmt(ya.coc,1)+'%'),(B.s.mode==='primary'?'—':fmt(yb.coc,1)+'%')],
+    ["Cap rate yr1",(A.s.mode==='primary'?'—':fmt(ya.cap,1)+'%'),(B.s.mode==='primary'?'—':fmt(yb.cap,1)+'%')],
+    ["Breakeven rent/mo",(A.s.mode==='primary'?'—':(A.s.mode==='str'?'ADR '+usd(ya.breakevenADR,0):usd(ya.breakeven,0))),(B.s.mode==='primary'?'—':(B.s.mode==='str'?'ADR '+usd(yb.breakevenADR,0):usd(yb.breakeven,0)))],
+    ["Value @ end of horizon (A: "+Math.min(10,Math.max(1,A.s.years))+"y / B: "+Math.min(10,Math.max(1,B.s.years))+"y)",usd(rowsX(ya).val),usd(rowsX(yb).val)],
+    ["Cumulative CF @ that yr",(A.s.mode==='primary'?'n/a':usd(rowsX(ya).cum)),(B.s.mode==='primary'?'n/a':usd(rowsX(yb).cum))],
+    ["Net sale proceeds (−6% sale costs)",usd(np(ya)),usd(np(yb))]
+  ];
+  var h='<tr><th></th><th>Scenario A</th><th>Scenario B</th></tr>';
+  t.forEach(function(r){ h+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>'; });
+  S('cmpTable').innerHTML=h;
+}
+function recalc(){
+  renderSc(1); renderSc(2); renderCompare();
+}
+function mount(){
+  S('cardA').innerHTML=scenarioPane(1,'A');
+  S('cardB').innerHTML=scenarioPane(2,'B');
+  S('cardA').insertAdjacentHTML('beforeend','<div id="sc1_out"></div><div class="presets"><button class="sec" onclick="copyAB()">Copy A → B</button></div>');
+  S('cardB').insertAdjacentHTML('beforeend','<div id="sc2_out"></div>');
+  document.querySelectorAll('input[name="sc1_mode"],input[name="sc2_mode"]').forEach(function(r){ r.addEventListener('change',function(){ var sc=r.name.indexOf('1')>-1?1:2, g=S('sc'+sc+'_incGrid'), vals={};
+    g.querySelectorAll('input').forEach(function(el){ vals[el.dataset.k]=el.value; });
+    g.innerHTML=incFields(sc);
+    g.querySelectorAll('input').forEach(function(el){ if(vals[el.dataset.k]!==undefined) el.value=vals[el.dataset.k]; });
+    recalc(); }); });
+  document.querySelectorAll('input,select').forEach(function(el){ el.addEventListener('input',recalc); el.addEventListener('change',recalc); });
+  applySc(1,PRESETS.wpb);
+  applySc(2,PRESETS.viera);
+}
+window.addEventListener('DOMContentLoaded',mount);
+/* test hook: analyzer.html?test=1 writes deterministic JSON used by validate.py */
+window.addEventListener('DOMContentLoaded',function(){
+  if((location.search||'').indexOf('test=1')<0) return;
+  function snap(key){
+    var st=PRESETS[key]; var o=model(st.s,Math.min(st.years,10));
+    var r5=o.rows[4], r10=o.rows[Math.min(9,st.years-1)];
+    return {preset:key, cashAtClose:o.cashAtClose, pmt:o.monthlyPAndI,
+      y1noi:o.y1.noi, y1cf:o.y1.cf, cap:o.cap, coc:o.coc,
+      breakeven:(st.s.mode==='str'?o.breakevenADR:o.breakeven),
+      tax1:o.y1Comps.tax, cum5:r5?r5.cum:null, val10:r10?r10.val:null, bal10:r10?r10.bal:null};
+  }
+  var st=JSON.parse(JSON.stringify(PRESETS.viera.s)); st.amendment3=true;
+  var o=model(st,5);
+  var extra={preset:'vieraA3', cashAtClose:o.cashAtClose, pmt:o.monthlyPAndI,
+             tax1:o.y1Comps.tax, taxes:o.rows.map(function(r){return r.tax;})};
+  var div=document.createElement('div'); div.id='testjson';
+  div.textContent=JSON.stringify([snap('wpb'),snap('titus'),snap('kiss'),extra]);
+  document.body.appendChild(div);
+});
+</script>
+</body>
+</html>
